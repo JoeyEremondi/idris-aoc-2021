@@ -1,0 +1,53 @@
+#+TITLE: Over-Engineering AOC in Idris: Day 1
+
+* Imports and such
+
+
+#+begin_src idris
+
+module Day1a
+import Data.Vect
+import Data.Rel
+import Data.Fun
+import Decidable.Decidable
+
+#+end_src
+
+
+* Datatype describing the solution
+
+#+begin_src idris
+data ListCount :  (pred : a -> Type) -> List a -> Nat -> Type where
+    NilCount : ListCount pred [] 0
+    TrueCount : ListCount pred t n -> pred h -> ListCount pred (h :: t) (1 + n)
+    FalseCount : ListCount pred t n -> Not (pred h) -> ListCount pred (h :: t) n
+
+#+end_src
+
+* Show that the datatype is decidable if the predicate is
+
+#+begin_src idris
+
+findListCount : {pred : a -> Type} -> ((x : a) -> Dec (pred x)) -> (lst : List a) -> (n ** ListCount pred lst n)
+findListCount dec [] = (0 ** NilCount)
+findListCount dec (x :: xs) with (dec x, findListCount dec xs)
+  findListCount dec (x :: xs) | (Yes pf, (n ** rec)) = ((1 + n) ** (TrueCount rec pf))
+  findListCount dec (x :: xs) | (No npf, (n ** rec)) =  (n ** (FalseCount rec npf))
+
+#+end_src
+
+* Show that the predicate is decidable
+
+* Turn a vector into a one-shorter vector of adjacent elements
+
+#+begin_src idris
+
+adjacentPairs : Vect (1 + n) a -> Vect n (a , a)
+adjacentPairs (x :: []) = []
+adjacentPairs (x :: rest@(y :: xs)) = (x, y) :: adjacentPairs rest
+
+#+end_src
+
+* Parsing the input
+
+* Putting it all together
